@@ -1,4 +1,12 @@
+--[[
+  BLOCK COMMENT TEMPLATE
+]]
 
+--------------------------------------------------------------------------------
+---------------------------------- HELPERS -------------------------------------
+--------------------------------------------------------------------------------
+-- flag for enabling Msg function to display messages in the "Reascript console 
+-- output" window 
 local debug = 0
 
 function Msg(str)
@@ -7,6 +15,9 @@ function Msg(str)
   end
 end
 
+--------------------------------------------------------------------------------
+--------------------------------- SCRIPT START ---------------------------------
+--------------------------------------------------------------------------------
 local promptEndRec = reaper.SNM_GetIntConfigVar("promptendrec", 0)
 Msg("promptEndRec = " .. promptEndRec)
 

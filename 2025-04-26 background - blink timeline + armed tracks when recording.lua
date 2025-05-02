@@ -1,11 +1,8 @@
 
 
 --[[
-  BLOCK COMMENT
+  BLOCK COMMENT TEMPLATE
 ]]
-
-local debug = 1
-
 
 --[[
 The last thing I was working on was how to manage tracks getting moved around.
@@ -19,6 +16,22 @@ the recording highlight color to the tracks due to the "refresh" called in
 that update.
 
 ]]
+
+--[[
+Scenarios to consider
+ - User switches to different project tab
+ - Track becomes armed/disarmed
+ - Ensure that "recording" track color is not captured as original color
+    - i.e. what if track count changes while tracks are highlighted with 
+      recording red? That'd trigger allTracksRefresh and capture the current red color
+    - possible approach: if tracks are currently highilghted ("up" phase) AND 
+      the track count has changed, then create a temp copy of allTracks from 
+      which we can pull the original color rather than the current highlight
+      color, checking if the track is armed beforehand
+  - TODO: deleting tracks in middle of track list
+  - TODO: moving tracks around
+]]
+
 --------------------------------------------------------------------------------
 -------------------------------- COLOR VARIABLES -------------------------------
 --------------------------------------------------------------------------------
@@ -44,11 +57,12 @@ local tl_fg2_normal = reaper.GetThemeColor("col_tl_fg2", 0)
 local playcursor_color_normal = reaper.GetThemeColor("playcursor_color", 0) 
 local playcursor_color_recording = reaper.ColorToNative( 252, 93, 95 )
 
-
-
 --------------------------------------------------------------------------------
 ---------------------------------- HELPERS -------------------------------------
 --------------------------------------------------------------------------------
+-- flag for enabling Msg function to display messages in the "Reascript console 
+-- output" window 
+local debug = 1
 
 function Msg(str)
   if debug == 1 then
@@ -56,7 +70,7 @@ function Msg(str)
   end
 end
 
-
+--------------------------------------------------------------------------------
 
 function getTrackInfo(trackIdx)
   -- returns MediaTrack type corresponding to track
@@ -82,7 +96,6 @@ function isTrackArmed(trackIdx)
   return isTrackArmed
 end
 
-
 -- instantiate and initialize allTracks to empty table/array
 allTracks = {} 
 
@@ -103,7 +116,6 @@ local function allTracksRefresh ()
 
   end -- end  for
 end  -- end  function
-
 
 local function allTracksPrint ()
   for idx, track in ipairs(allTracks) do 
@@ -168,9 +180,6 @@ local function allTracks_verifyTracksMatch ()
   end -- end  for
 end  -- end  function
 
-
-
-
 local function timeline_SetRecColor ()
   reaper.SetThemeColor("col_tl_bg",  tl_bg_recording)
   reaper.SetThemeColor("col_tl_fg",  tl_fg_recording)
@@ -182,51 +191,6 @@ local function timeline_UnsetRecColor ()
   reaper.SetThemeColor("col_tl_fg", tl_fg_normal)
   reaper.SetThemeColor("col_tl_fg2", tl_fg2_normal)
 end -- end  function
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-reaper.ClearConsole()
-
-
-projTrackCount_current = reaper.CountTracks(0)
-projTrackCount_previous = projTrackCount_current
-
--- instantiate armedTracks
-armedTracks = {} 
-allTracksRefresh()
-
-time_start = reaper.time_precise()
-elapsed = 0
-elapsed_previous = 0
-
-playstate_previous = 0
-playstate_current = 0
-
-allTracksPrint()
-
-Msg("")
-Msg("......................................")
-Msg("")
-
-
-
---[[
-Scenarios to consider
- - User switches to different project tab
- - Track becomes armed/disarmed
- - Ensure that "recording" track color is not captured as original color
-    - i.e. what if track count changes while tracks are highlighted with 
-      recording red? That'd trigger allTracksRefresh and capture the current red color
-    - possible approach: if tracks are currently highilghted ("up" phase) AND 
-      the track count has changed, then create a temp copy of allTracks from 
-      which we can pull the original color rather than the current highlight
-      color, checking if the track is armed beforehand
-  - TODO: deleting tracks in middle of track list
-  - TODO: moving tracks around
-]]
 
 
 function setRecordingColors()
@@ -280,5 +244,28 @@ function main()
   reaper.defer(main)
 end
 
-main()
+--------------------------------------------------------------------------------
+--------------------------------- SCRIPT START ---------------------------------
+--------------------------------------------------------------------------------
+reaper.ClearConsole()
 
+projTrackCount_current = reaper.CountTracks(0)
+projTrackCount_previous = projTrackCount_current
+
+-- instantiate armedTracks
+armedTracks = {} 
+allTracksRefresh()
+
+time_start = reaper.time_precise()
+elapsed = 0
+elapsed_previous = 0
+
+playstate_previous = 0
+playstate_current = 0
+
+allTracksPrint()
+Msg("")
+Msg("......................................")
+Msg("")
+
+main()

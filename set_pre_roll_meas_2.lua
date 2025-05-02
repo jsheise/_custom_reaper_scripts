@@ -5,8 +5,5 @@ RESOURCES:
 --     https://mespotin.uber.space/Ultraschall/Reaper_Config_Variables.html#prerollmeas
 ]]
 
-CURR_PROJ = 0; -- current project
-FIRST = 0; -- first selected track 
-
 -- Set pre-roll to (4) measures
 reaper.SNM_SetDoubleConfigVar("prerollmeas", 2)
